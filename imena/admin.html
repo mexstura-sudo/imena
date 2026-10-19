@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Лесные имена — управление</title>
+<meta name="theme-color" content="#F5EEDF">
+<link href="../assets/fonts/manrope.css" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
+<style>
+.page{max-width:900px;margin:0 auto;padding-block:calc(28px + env(safe-area-inset-top,0px)) calc(60px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:32px;line-height:1.05;margin:4px 0 0;font-weight:800}
+.me{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);font-weight:600;min-width:0}
+.me span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panel{background:var(--paper);border-radius:28px;padding:22px;box-shadow:0 10px 30px var(--shadow)}
+.login{max-width:440px;display:flex;flex-direction:column;gap:14px}
+.login h2{margin:0;font-size:24px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs .chip .n{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:var(--orange);color:#fff;font-size:12px;line-height:20px;text-align:center}
+.list{display:flex;flex-direction:column;gap:14px}
+.req{display:grid;grid-template-columns:132px 1fr;gap:18px;align-items:start;animation:up .4s both}
+.req .ph{display:flex;flex-direction:column;gap:8px;align-items:center}
+.req .ph .av{width:132px;height:132px}
+.req .ph a{font-size:13px;color:var(--muted);font-weight:700}
+.req .body{display:flex;flex-direction:column;gap:12px;min-width:0}
+.req .when{font-size:13px;color:var(--muted);font-weight:600}
+.three{display:grid;grid-template-columns:1fr 1fr 110px;gap:12px}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.silrow{display:flex;gap:10px;align-items:center}
+.silrow .av{width:52px;height:52px}
+.silrow select{flex:1}
+.rows{display:flex;flex-direction:column}
+.r{display:flex;align-items:center;gap:14px;padding:10px 6px;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;cursor:pointer;border-radius:14px;width:100%}
+.r:first-child{border-top:0}
+.r:hover{background:var(--cream)}
+.r .av{width:46px;height:46px}
+.r .t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.r .t b{font-size:16px}
+.r .t span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r .y{font-size:13px;font-weight:800;color:var(--orange);font-variant-numeric:tabular-nums}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.bar .f{flex:1;min-width:200px}
+.empty{color:var(--muted);text-align:center;padding:26px 10px;line-height:1.5}
+.msg{font-size:14px;font-weight:700;line-height:1.4}
+.msg.ok{color:var(--green)}.msg.bad{color:var(--danger)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--cream);font-weight:700;border-radius:16px;padding:12px 18px;animation:pop .3s both;max-width:calc(100% - 32px)}
+.adm{display:flex;align-items:center;gap:10px;padding:12px 4px;border-top:1px solid var(--line)}
+.adm:first-child{border-top:0}
+.adm b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+.hist{font-size:14px;color:var(--muted)}
+.hist div{padding:8px 4px;border-top:1px solid var(--line)}
+.st{font-weight:800}.st.approved{color:var(--green)}.st.rejected{color:var(--danger)}
+.editbox{max-width:520px;text-align:left}
+.confirm{background:var(--cream);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+@media(max-width:600px){.req{grid-template-columns:1fr}.req .ph{flex-direction:row}.req .ph .av{width:96px;height:96px}.three{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <div><div class="kick">Байкальский Скаут · управление</div><h1>Лесные имена</h1></div>
+    <div class="me" id="me" hidden><span id="meEmail"></span><button class="btn ghost sm" type="button" id="logout">Выйти</button></div>
+  </div>
+  <div id="app"><div class="panel"><div class="skel" style="height:60px"></div></div></div>
+</div>
+<div class="veil" id="editVeil" hidden><div class="box form editbox" id="editBox" role="dialog" aria-modal="true" aria-label="Запись"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script>
+(function () {
+var esc = LI.esc, norm = LI.norm, TINT = LI.TINT, SIL = LI.SIL;
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var app = $('#app'), sb = null, me = null, tab = 'req', names = [], reqs = [];
+
+function toast(t) { var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3000); }
+function av(s, photo, cls) { return '<div class="av ' + (TINT[s] || 'c-g') + (cls ? ' ' + cls : '') + '">' + (photo ? '<img src="' + esc(photo) + '" alt="">' : '<svg aria-hidden="true"><use href="#s-' + (s || 'w') + '"/></svg>') + '</div>'; }
+function silOptions(cur) { return Object.keys(SIL).filter(function (k) { return k !== 'q'; }).map(function (k) { return '<option value="' + k + '"' + (k === cur ? ' selected' : '') + '>' + SIL[k][0] + '</option>'; }).join(''); }
+function guessSil(name) {
+  var n = norm(name), map = [[/сов|филин|сыч/, 'o'], [/медвед|балу|барибал|гризли|панда$/, 'br'], [/рыс|пум|манул|кот|кошк|тигр|лев|леопард|барс|ирбис|гепард|ягуар|пантер|багир|онцилл|оцелот|каракал/, 'c'],
+    [/волк|лис|шакал|пес|пёс|собак|хаск|фенек|корсак|динго|тануки|акита|мастиф|корсо|лайк/, 'd'], [/дельфин|акул|кит|афалин|косатк|тюлен|нерп|морж|рыб/, 's'],
+    [/олен|лан|лось|кабарг|косул|куду|окапи|альпак|лам|конь|лошад|зебр|антилоп|сайгак|козел|козёл|баран|бизон|зубр/, 'h'], [/лемур|индри|саймири|обезьян|мартышк|горилл|шимпанз|орангутан|капуцин|макак/, 'p'],
+    [/фея|эльф|дракон|единорог|феникс|мушу|дровосек/, 'f'], [/акаци|дуб|берез|берёз|сосн|кедр|лиственниц|ель|липа|клен|клён|рябин|цвет|трав/, 'l'], [/муха|пчел|пчёл|шмел|жук|бабочк|стрекоз|муравь|оса$/, 'i'],
+    [/птиц|орел|орёл|сокол|сапсан|кречет|ястреб|журавл|аист|ласточк|колибри|фламинго|ворон|сорок|синиц|лазоревк|горихвост|пересмешк|пустельг|стриж|зарянк|дятел|чайк|цапл|лебед|утк|гус|кукушк|соловей|снегир|клест|клёст|сойк|кедровк|скворец|беркут|коршун|лунь|чиж|щегол|зимородок/, 'b']];
+  for (var i = 0; i < map.length; i++) if (map[i][0].test(n)) return map[i][1];
+  return /ласк|барсук|енот|горност|сурикат|мангуст|соболь|куниц|норк|выдр|белк|бурундук|заяц|кролик|ёж|еж|хомяк|мыш|крыс|тушкан|квокк|фретк|хорь|хорек|олинго|фосса|бобр|дьявол|опоссум|коал|кенгуру/.test(n) ? 'm' : 'w';
+}
+
+// ---------- вход ----------
+function init() {
+  if (!LI.configured) { app.innerHTML = '<div class="panel">Заполните imena/config.js по инструкции SETUP.md.</div>'; return; }
+  if (!window.supabase) { app.innerHTML = '<div class="panel">Не загрузилась библиотека Supabase. Проверьте интернет и обновите страницу.</div>'; return; }
+  sb = supabase.createClient(LI.base, window.LI_CONFIG.key);
+  sb.auth.onAuthStateChange(function (ev, session) { if (ev === 'SIGNED_IN' || ev === 'INITIAL_SESSION' || ev === 'SIGNED_OUT') setTimeout(function () { onSession(session); }, 0); });
+}
+var lastUser = undefined;
+function onSession(session) {
+  var u = session && session.user ? session.user.email : null;
+  if (u === lastUser) return; lastUser = u;
+  if (!u) { $('#me').hidden = true; me = null; return showLogin(); }
+  $('#me').hidden = false; $('#meEmail').textContent = u; me = u.toLowerCase();
+  if (/access_token|error|code=/.test(location.hash + location.search)) history.replaceState(null, '', location.pathname);
+  sb.rpc('is_admin').then(function (r) {
+    if (r.error) throw r.error;
+    if (!r.data) { app.innerHTML = '<div class="panel login"><h2>Нет доступа</h2><p class="note">Почты ' + esc(u) + ' нет в списке администраторов. Попросите администратора добавить её на вкладке «Админы», затем войдите снова.</p></div>'; return; }
+    shell();
+  }).catch(function (e) { app.innerHTML = '<div class="panel">Ошибка проверки доступа: ' + esc(e.message) + '</div>'; });
+}
+$('#logout').onclick = function () { sb.auth.signOut(); };
+
+function showLogin() {
+  var hashErr = /error_description=([^&]+)/.exec(location.hash);
+  app.innerHTML = '<form class="panel login" id="lf" novalidate><h2>Вход для администраторов</h2>' +
+    '<p class="note">Введите почту — придёт письмо со ссылкой для входа. Пароль не нужен.</p>' +
+    '<div class="f"><label for="le">Почта</label><input id="le" type="email" autocomplete="email" placeholder="name@example.com"></div>' +
+    '<button class="btn" type="submit" id="lb">Прислать ссылку</button><div class="msg" id="lm">' +
+    (hashErr ? '<span class="bad">Ссылка не сработала: ' + esc(decodeURIComponent(hashErr[1].replace(/\+/g, ' '))) + '. Запросите новую.</span>' : '') + '</div></form>';
+  $('#lf').onsubmit = function (e) {
+    e.preventDefault(); var em = $('#le').value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(em)) { $('#lm').className = 'msg bad'; $('#lm').textContent = 'Проверьте адрес почты.'; return; }
+    $('#lb').disabled = true;
+    sb.auth.signInWithOtp({email: em, options: {emailRedirectTo: location.origin + location.pathname}}).then(function (r) {
+      $('#lb').disabled = false;
+      if (r.error) { $('#lm').className = 'msg bad'; $('#lm').textContent = /rate|limit|security purposes/i.test(r.error.message) ? 'Слишком много писем подряд. Подождите минуту и попробуйте снова.' : r.error.message; return; }
+      $('#lm').className = 'msg ok'; $('#lm').textContent = 'Письмо отправлено на ' + em + '. Откройте ссылку из него на этом же устройстве. Если письма нет — проверьте «Спам».';
+    });
+  };
+}
+
+// ---------- каркас ----------
+function shell() {
+  app.innerHTML = '<div style="display:flex;flex-direction:column;gap:16px"><div class="tabs" id="tabs">' +
+    '<button class="chip" type="button" data-tab="req">Заявки<span class="n" id="nReq" hidden></span></button>' +
+    '<button class="chip" type="button" data-tab="base">База</button><button class="chip" type="button" data-tab="adm">Админы</button></div><div id="view"></div></div>';
+  $('#tabs').onclick = function (e) { var b = e.target.closest('[data-tab]'); if (b) { tab = b.getAttribute('data-tab'); show(); } };
+  show();
+}
+function show() {
+  document.querySelectorAll('#tabs .chip').forEach(function (c) { c.setAttribute('aria-pressed', c.getAttribute('data-tab') === tab); });
+  $('#view').innerHTML = '<div class="panel"><div class="skel" style="height:80px"></div></div>';
+  ({req: loadReqs, base: loadBase, adm: loadAdmins})[tab]();
+  if (tab !== 'req') countReqs();
+}
+function countReqs() {
+  sb.from('requests').select('id', {count: 'exact', head: true}).eq('status', 'pending').then(function (r) {
+    var n = r.count || 0; $('#nReq').hidden = !n; $('#nReq').textContent = n;
+  });
+}
+function loadNames() {
+  return sb.from('names').select('*').order('forest_name').then(function (r) { if (r.error) throw r.error; names = r.data; return names; });
+}
+
+// ---------- заявки ----------
+function loadReqs() {
+  Promise.all([
+    sb.from('requests').select('*').eq('status', 'pending').order('created_at'),
+    sb.from('requests').select('id,fio,forest_name,status,created_at').neq('status', 'pending').order('created_at', {ascending: false}).limit(30),
+    loadNames()
+  ]).then(function (res) {
+    if (res[0].error) throw res[0].error;
+    reqs = res[0].data; var hist = res[1].data || [];
+    $('#nReq').hidden = !reqs.length; $('#nReq').textContent = reqs.length;
+    var html = reqs.length ? '<div class="list">' + reqs.map(reqCard).join('') + '</div>' : '<div class="panel empty">Новых заявок нет.</div>';
+    if (hist.length) html += '<div class="panel hist" style="margin-top:14px"><div style="border:0;padding:0 4px 8px;font-weight:800;color:var(--ink)">Последние обработанные</div>' +
+      hist.map(function (h) { return '<div><span class="st ' + h.status + '">' + (h.status === 'approved' ? 'Одобрена' : 'Отклонена') + '</span> · ' + esc(h.forest_name) + ' — ' + esc(h.fio) + ' · ' + new Date(h.created_at).toLocaleDateString('ru-RU') + '</div>'; }).join('') + '</div>';
+    $('#view').innerHTML = html;
+    reqs.forEach(function (q) {
+      var card = $('[data-req="' + q.id + '"]');
+      if (q.photo_path) sb.storage.from('uploads').createSignedUrl(q.photo_path, 3600).then(function (r) {
+        if (r.data) { $('.ph .av', card).outerHTML = av('', r.data.signedUrl); $('.ph a', card).href = r.data.signedUrl; $('.ph a', card).hidden = false; }
+      });
+      var sel = $('select', card), name = $('[name=forest_name]', card);
+      sel.onchange = function () { $('.silrow .av', card).outerHTML = av(sel.value); };
+      name.oninput = function () { dupWarn(card, name.value); };
+      dupWarn(card, q.forest_name);
+      $('[data-ok]', card).onclick = function () { approve(q, card); };
+      $('[data-no]', card).onclick = function () { reject(q, card); };
+    });
+  }).catch(function (e) { $('#view').innerHTML = '<div class="panel">Ошибка: ' + esc(e.message) + '</div>'; });
+}
+function dupWarn(card, v) {
+  var hit = names.filter(function (n) { return norm(n.forest_name) === norm(v); })[0];
+  var w = $('.dup', card); w.hidden = !hit; if (hit) w.textContent = 'Имя «' + hit.forest_name + '» уже есть: ' + (hit.fio || 'без ФИО') + (hit.year ? ', ' + hit.year : '');
+}
+function reqCard(q) {
+  var s = guessSil(q.forest_name);
+  return '<div class="panel req" data-req="' + q.id + '"><div class="ph">' + av(s) + '<a target="_blank" rel="noopener" hidden>Открыть фото</a>' +
+    (q.photo_path ? '' : '<span class="note">Без фото</span>') + '</div><div class="body">' +
+    '<div class="when">Заявка от ' + new Date(q.created_at).toLocaleString('ru-RU', {day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}) + (q.photo_path ? ' · согласие на фото есть' : '') + '</div>' +
+    '<div class="f"><label>Лесное имя</label><input type="text" name="forest_name" maxlength="60" value="' + esc(q.forest_name) + '"><span class="warn dup" hidden></span></div>' +
+    '<div class="three"><div class="f"><label>ФИО</label><input type="text" name="fio" maxlength="120" value="' + esc(q.fio) + '"></div>' +
+    '<div class="f"><label>Отряд</label><input type="text" name="otryad" maxlength="120" value="' + esc(q.otryad) + '"></div>' +
+    '<div class="f"><label>Год</label><input type="number" name="year" min="1900" max="2100" value="' + esc(q.year || '') + '"></div></div>' +
+    '<div class="f"><label>Силуэт, если нет фото</label><div class="silrow">' + av(s) + '<select name="silhouette">' + silOptions(s) + '</select></div></div>' +
+    '<div class="acts"><button class="btn" type="button" data-ok>Одобрить</button><button class="btn danger" type="button" data-no>Отклонить</button></div><div class="msg bad"></div></div></div>';
+}
+function readFields(root) {
+  var g = function (n) { return $('[name=' + n + ']', root).value.trim(); };
+  var y = g('year');
+  return {forest_name: g('forest_name'), fio: g('fio'), otryad: g('otryad'), year: y ? +y : null, silhouette: g('silhouette')};
+}
+function validate(row) {
+  if (!row.forest_name) return 'Лесное имя не может быть пустым.';
+  if (row.year != null && !(row.year >= 1900 && row.year <= 2100)) return 'Год должен быть от 1900 до 2100.';
+  return '';
+}
+function busy(card, on) { card.querySelectorAll('button,input,select').forEach(function (b) { b.disabled = on; }); }
+function approve(q, card) {
+  var row = readFields(card), bad = validate(row), msg = $('.msg', card);
+  if (bad) { msg.textContent = bad; return; }
+  busy(card, true); msg.textContent = '';
+  var step = Promise.resolve(null);
+  if (q.photo_path) step = sb.storage.from('uploads').download(q.photo_path).then(function (r) {
+    if (r.error) throw r.error;
+    var path = LI.uuid() + '.jpg';
+    return sb.storage.from('photos').upload(path, r.data, {contentType: 'image/jpeg', upsert: false}).then(function (u) { if (u.error) throw u.error; return path; });
+  });
+  step.then(function (photo) {
+    row.photo_path = photo;
+    return sb.from('names').insert(row).then(function (r) { if (r.error) throw r.error; });
+  }).then(function () {
+    return sb.from('requests').update({status: 'approved', fio: row.fio, otryad: row.otryad, forest_name: row.forest_name, year: row.year}).eq('id', q.id).then(function (r) { if (r.error) throw r.error; });
+  }).then(function () {
+    if (q.photo_path) sb.storage.from('uploads').remove([q.photo_path]);
+    toast('«' + row.forest_name + '» добавлено в базу'); loadReqs();
+  }).catch(function (e) { busy(card, false); msg.textContent = 'Не получилось: ' + e.message; });
+}
+function reject(q, card) {
+  var acts = $('.acts', card);
+  acts.innerHTML = '<div class="confirm" style="flex:1"><b>Отклонить заявку «' + esc(q.forest_name) + '»?</b><span class="note">Фото из заявки будет удалено.</span>' +
+    '<div class="acts"><button class="btn danger sm" type="button" data-yes>Отклонить</button><button class="btn ghost sm" type="button" data-back>Отмена</button></div></div>';
+  $('[data-back]', acts).onclick = loadReqs;
+  $('[data-yes]', acts).onclick = function () {
+    busy(card, true);
+    sb.from('requests').update({status: 'rejected'}).eq('id', q.id).then(function (r) {
+      if (r.error) throw r.error;
+      if (q.photo_path) return sb.storage.from('uploads').remove([q.photo_path]);
+    }).then(function () { toast('Заявка отклонена'); loadReqs(); }).catch(function (e) { busy(card, false); $('.msg', card).textContent = e.message; });
+  };
+}
+
+// ---------- база ----------
+var baseQ = '';
+function loadBase() {
+  loadNames().then(drawBase).catch(function (e) { $('#view').innerHTML = '<div class="panel">Ошибка: ' + esc(e.message) + '</div>'; });
+}
+function drawBase() {
+  $('#view').innerHTML = '<div class="panel" style="display:flex;flex-direction:column;gap:14px"><div class="bar"><div class="f"><input type="text" id="bq" placeholder="Поиск по имени, ФИО, году" aria-label="Поиск" value="' + esc(baseQ) + '"></div>' +
+    '<button class="btn sm" type="button" id="addRow">+ Добавить запись</button></div><div class="note" id="bc"></div><div class="rows" id="rows"></div></div>';
+  var draw = function () {
+    var q = norm(baseQ), list = names.filter(function (n) { return !q || q.split(/\s+/).every(function (w) { return norm(n.forest_name + ' ' + n.fio + ' ' + n.otryad + ' ' + (n.year || '')).indexOf(w) >= 0; }); });
+    $('#bc').textContent = 'Записей: ' + list.length + ' из ' + names.length;
+    $('#rows').innerHTML = list.map(function (n) {
+      return '<button class="r" type="button" data-id="' + n.id + '">' + av(n.silhouette, LI.photoUrl(n.photo_path)) + '<span class="t"><b>' + esc(n.forest_name) + '</b><span>' + esc([n.fio || 'без ФИО', n.otryad].filter(Boolean).join(' · ')) + '</span></span><span class="y">' + esc(n.year || '') + '</span></button>';
+    }).join('') || '<div class="empty">Ничего не найдено.</div>';
+  };
+  $('#bq').oninput = function (e) { baseQ = e.target.value; draw(); };
+  $('#rows').onclick = function (e) { var b = e.target.closest('[data-id]'); if (b) editName(names.filter(function (n) { return n.id === b.getAttribute('data-id'); })[0]); };
+  $('#addRow').onclick = function () { editName(null); };
+  draw();
+}
+function editName(n) {
+  var isNew = !n; n = n || {forest_name: '', fio: '', otryad: '', year: null, silhouette: 'w', photo_path: null};
+  var newBlob = null, dropPhoto = false;
+  var box = $('#editBox');
+  box.innerHTML = '<button class="x" type="button" data-close aria-label="Закрыть">×</button><h2>' + (isNew ? 'Новая запись' : esc(n.forest_name)) + '</h2>' +
+    '<div class="silrow" id="ePh">' + av(n.silhouette, LI.photoUrl(n.photo_path)) + '<div class="acts"><label class="btn ghost sm" for="eFile">' + (n.photo_path ? 'Заменить фото' : 'Добавить фото') + '</label>' +
+    '<button class="btn ghost sm" type="button" id="eDrop"' + (n.photo_path ? '' : ' hidden') + '>Убрать фото</button></div><input id="eFile" type="file" accept="image/jpeg,image/png,image/webp" hidden></div>' +
+    '<div class="f"><label for="eName">Лесное имя</label><input id="eName" type="text" name="forest_name" maxlength="60" value="' + esc(n.forest_name) + '"></div>' +
+    '<div class="f"><label for="eFio">ФИО</label><input id="eFio" type="text" name="fio" maxlength="120" value="' + esc(n.fio) + '"></div>' +
+    '<div class="two"><div class="f"><label for="eOtr">Отряд</label><input id="eOtr" type="text" name="otryad" maxlength="120" value="' + esc(n.otryad) + '"></div>' +
+    '<div class="f"><label for="eYear">Год</label><input id="eYear" type="number" name="year" min="1900" max="2100" value="' + esc(n.year || '') + '"></div></div>' +
+    '<div class="f"><label for="eSil">Силуэт, если нет фото</label><select id="eSil" name="silhouette">' + silOptions(n.silhouette) + '</select></div>' +
+    '<div class="msg bad" id="eMsg"></div><div class="acts"><button class="btn" type="button" id="eSave">Сохранить</button>' +
+    (isNew ? '' : '<button class="btn danger" type="button" id="eDel">Удалить запись</button>') + '</div><div id="eConf"></div>';
+  $('#editVeil').hidden = false;
+  var preview = function () {
+    var url = newBlob ? URL.createObjectURL(newBlob) : (!dropPhoto && LI.photoUrl(n.photo_path));
+    $('#ePh .av').outerHTML = av($('#eSil').value, url);
+    $('#eDrop').hidden = !(newBlob || (!dropPhoto && n.photo_path));
+  };
+  $('#eSil').onchange = preview;
+  if (isNew) $('#eName').oninput = function () { $('#eSil').value = guessSil($('#eName').value); preview(); };
+  $('#eFile').onchange = function (e) { var f = e.target.files[0]; if (!f) return; LI.prepPhoto(f, 1000).then(function (b) { newBlob = b; dropPhoto = false; preview(); }).catch(function (x) { $('#eMsg').textContent = x.message; }); };
+  $('#eDrop').onclick = function () { newBlob = null; dropPhoto = true; $('#eFile').value = ''; preview(); };
+  $('#eSave').onclick = function () {
+    var row = readFields(box), bad = validate(row); if (bad) { $('#eMsg').textContent = bad; return; }
+    busy(box, true);
+    var old = n.photo_path, up = Promise.resolve(dropPhoto ? null : old);
+    if (newBlob) { var path = LI.uuid() + '.jpg'; up = sb.storage.from('photos').upload(path, newBlob, {contentType: 'image/jpeg'}).then(function (u) { if (u.error) throw u.error; return path; }); }
+    up.then(function (photo) {
+      row.photo_path = photo; row.updated_at = new Date().toISOString();
+      return (isNew ? sb.from('names').insert(row) : sb.from('names').update(row).eq('id', n.id)).then(function (r) { if (r.error) throw r.error; return photo; });
+    }).then(function (photo) {
+      if (old && old !== photo) sb.storage.from('photos').remove([old]);
+      $('#editVeil').hidden = true; toast('Сохранено'); loadBase();
+    }).catch(function (e) { busy(box, false); $('#eMsg').textContent = 'Не получилось: ' + e.message; });
+  };
+  if (!isNew) $('#eDel').onclick = function () {
+    $('#eConf').innerHTML = '<div class="confirm"><b>Удалить «' + esc(n.forest_name) + '» из базы?</b><span class="note">Запись и фото удалятся без возможности восстановления.</span>' +
+      '<div class="acts"><button class="btn danger sm" type="button" id="eYes">Удалить</button><button class="btn ghost sm" type="button" id="eNo">Отмена</button></div></div>';
+    $('#eNo').onclick = function () { $('#eConf').innerHTML = ''; };
+    $('#eYes').onclick = function () {
+      busy(box, true);
+      sb.from('names').delete().eq('id', n.id).then(function (r) {
+        if (r.error) throw r.error;
+        if (n.photo_path) sb.storage.from('photos').remove([n.photo_path]);
+        $('#editVeil').hidden = true; toast('Запись удалена'); loadBase();
+      }).catch(function (e) { busy(box, false); $('#eMsg').textContent = e.message; });
+    };
+  };
+  setTimeout(function () { $('#eName').focus(); }, 60);
+}
+
+// ---------- админы ----------
+function loadAdmins() {
+  sb.from('admins').select('*').order('added_at').then(function (r) {
+    if (r.error) throw r.error;
+    $('#view').innerHTML = '<div class="panel" style="display:flex;flex-direction:column;gap:16px"><p class="note">Чтобы пригласить человека, добавьте его почту и отправьте ему ссылку на эту страницу. Он войдёт по письму со ссылкой.</p>' +
+      '<form class="bar" id="af" novalidate><div class="f"><input type="email" id="ae" placeholder="name@example.com" aria-label="Почта нового администратора"></div><button class="btn sm" type="submit">Добавить</button></form><div class="msg bad" id="am"></div>' +
+      '<div>' + r.data.map(function (a) {
+        return '<div class="adm"><b>' + esc(a.email) + '</b>' + (a.email === me ? '<span class="note">это вы</span>' : '<button class="btn danger sm" type="button" data-rm="' + esc(a.email) + '">Убрать</button>') + '</div>';
+      }).join('') + '</div><div class="note">Ссылка для приглашённых: <b style="user-select:all">' + esc(location.origin + location.pathname) + '</b></div></div>';
+    $('#af').onsubmit = function (e) {
+      e.preventDefault(); var em = $('#ae').value.trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(em)) { $('#am').textContent = 'Проверьте адрес почты.'; return; }
+      sb.from('admins').insert({email: em}).then(function (r) {
+        if (r.error) { $('#am').textContent = /duplicate/i.test(r.error.message) ? 'Эта почта уже в списке.' : r.error.message; return; }
+        toast(em + ' добавлен(а)'); loadAdmins();
+      });
+    };
+    $('#view').querySelectorAll('[data-rm]').forEach(function (b) {
+      b.onclick = function () {
+        if (b.getAttribute('data-sure')) {
+          sb.from('admins').delete().eq('email', b.getAttribute('data-rm')).then(function (r) { if (r.error) { $('#am').textContent = r.error.message; return; } toast('Доступ убран'); loadAdmins(); });
+        } else { b.setAttribute('data-sure', '1'); b.textContent = 'Точно убрать?'; }
+      };
+    });
+  }).catch(function (e) { $('#view').innerHTML = '<div class="panel">Ошибка: ' + esc(e.message) + '</div>'; });
+}
+
+document.addEventListener('click', function (e) { if (e.target.closest('[data-close]') || e.target.id === 'editVeil') $('#editVeil').hidden = true; });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') $('#editVeil').hidden = true; });
+init();
+})();
+</script>
+</body>
+</html>

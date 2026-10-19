@@ -1,0 +1,84 @@
+/* Лесные имена — общие стили. Палитра и шрифт как у квизов. */
+:root{
+  --green:#284F36;--orange:#D85B21;--navy:#1F3954;--sand:#E4D5C2;--cream:#F5EEDF;--paper:#FBF8F1;--muted:#5B6B7C;
+  --ink:#1F3954;--line:rgba(31,57,84,.12);--shadow:rgba(31,57,84,.10);--veil:rgba(31,57,84,.82);--danger:#B3261E;
+  --g1:#284F36;--g2:#D85B21;--g3:#1F3954;
+  --tg-bg:#D7E4D6;--tg-fg:#284F36;--to-bg:#F6D9CB;--to-fg:#A9431A;--tn-bg:#D5DEE8;--tn-fg:#1F3954;--ts-bg:#EBDDC9;--ts-fg:#6B4A28;
+  --font:Gilroy,Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --green:#86B894;--orange:#F0834F;--navy:#A9C3DE;--sand:#3A4A3F;--cream:#121C17;--paper:#1B2A22;--muted:#9AAEA3;
+  --ink:#EDE4D3;--line:rgba(237,228,211,.12);--shadow:rgba(0,0,0,.35);--veil:rgba(8,14,11,.86);--danger:#F2B8B5;
+  --g1:#9BCBA7;--g2:#F59562;--g3:#B9D0E8;
+  --tg-bg:#24402F;--tg-fg:#A8D4B4;--to-bg:#4A2A1C;--to-fg:#F6B48F;--tn-bg:#22344A;--tn-fg:#BCD2EA;--ts-bg:#43372A;--ts-fg:#E5CBA6;
+  color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font);font-size:16px}
+[hidden]{display:none!important}
+button,input,select,textarea{font-family:inherit;color:inherit;font-size:inherit}
+button{-webkit-appearance:none;appearance:none;touch-action:manipulation}
+img{max-width:100%}
+
+.live{background:linear-gradient(90deg,var(--g1),var(--g2),var(--g3),var(--g1));background-size:300% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 9s linear infinite}
+@keyframes shimmer{to{background-position:300% 0}}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.92) translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{opacity:0;transform:scale(.6) rotate(-12deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bob{50%{transform:translateY(-4px) rotate(-3deg)}}
+@keyframes shine{to{background-position:-200% 0}}
+
+.kick{font-size:13px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1.5px}
+
+/* аватар: фото или силуэт */
+.av{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--fg);--cut:var(--bg);position:relative;overflow:hidden;flex:none}
+.av svg{width:66%;height:66%}
+.av img{width:100%;height:100%;object-fit:cover;max-width:none}
+.c-g{--bg:var(--tg-bg);--fg:var(--tg-fg)}.c-o{--bg:var(--to-bg);--fg:var(--to-fg)}.c-n{--bg:var(--tn-bg);--fg:var(--tn-fg)}.c-s{--bg:var(--ts-bg);--fg:var(--ts-fg)}
+
+.chip{border:0;border-radius:999px;padding:8px 14px;font-size:14px;font-weight:700;cursor:pointer;background:transparent;
+  box-shadow:inset 0 0 0 2px var(--sand);transition:background .2s,color .2s,transform .15s}
+.chip:active{transform:scale(.96)}
+.chip[aria-pressed="true"]{background:var(--green);color:var(--paper);box-shadow:none}
+.chip.yr[aria-pressed="true"]{background:var(--orange)}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--cream);color:var(--muted)}
+
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;border:0;border-radius:20px;padding:16px 22px;font-size:17px;font-weight:800;background:var(--green);color:var(--paper);cursor:pointer;transition:transform .15s,opacity .2s;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--sand)}
+.btn.warm{background:var(--orange);color:#fff}
+.btn.danger{background:transparent;color:var(--danger);box-shadow:inset 0 0 0 2px currentColor}
+.btn.sm{padding:10px 14px;font-size:14px;border-radius:14px}
+:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+
+/* модальные окна */
+.veil{position:fixed;inset:0;z-index:20;background:var(--veil);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  animation:fade .25s both;overflow-y:auto}
+.box{position:relative;background:var(--paper);border-radius:34px;padding:30px 24px 24px;width:100%;max-width:460px;text-align:center;animation:pop .5s cubic-bezier(.2,.9,.25,1.2) both;margin:auto}
+.x{position:absolute;top:12px;right:12px;width:42px;height:42px;border:0;border-radius:14px;background:var(--cream);cursor:pointer;font-size:20px}
+
+/* формы */
+.form{text-align:left;display:flex;flex-direction:column;gap:14px;max-width:520px}
+.form h2{margin:0 40px 0 0;font-size:26px;font-weight:800;line-height:1.1}
+.note{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.f{display:flex;flex-direction:column;gap:6px;min-width:0}
+.f label{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.f input[type=text],.f input[type=number],.f input[type=email],.f select{width:100%;border:0;border-radius:16px;background:var(--cream);padding:14px 16px;font-size:16px;font-weight:600;outline:none;box-shadow:inset 0 0 0 2px transparent;transition:box-shadow .2s}
+.f input:focus,.f select:focus{box-shadow:inset 0 0 0 2px var(--green)}
+.warn{font-size:13px;font-weight:700;color:var(--orange);line-height:1.4}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:15px;font-weight:600;line-height:1.4;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--green);flex:none;margin:0}
+.drop{display:flex;align-items:center;gap:14px;border-radius:20px;padding:14px;background:var(--cream);cursor:pointer;border:2px dashed var(--sand)}
+.drop .av{width:64px;height:64px}
+.drop b{display:block;font-size:15px}
+.drop span{font-size:13px;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.skel{border-radius:26px;height:100px;background:linear-gradient(90deg,var(--paper) 30%,var(--sand) 50%,var(--paper) 70%);background-size:200% 100%;animation:shine 1.4s linear infinite;opacity:.7}
+@media(max-width:520px){.two{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

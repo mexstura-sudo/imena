@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Интерактивы</title>
+<meta name="theme-color" content="#F5EEDF">
+<link href="assets/fonts/manrope.css" rel="stylesheet">
+<style>
+:root{--green:#284F36;--orange:#D85B21;--navy:#1F3954;--sand:#E4D5C2;--cream:#F5EEDF;--paper:#FBF8F1;--muted:#5B6B7C}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;background:var(--cream);color:var(--navy);font-family:Gilroy,Manrope,system-ui,sans-serif}
+button{-webkit-appearance:none;appearance:none;touch-action:manipulation;font-family:inherit;color:inherit}
+a{touch-action:manipulation}
+#app{max-width:680px;margin:0 auto;position:relative;overflow:hidden;min-height:100vh;min-height:100dvh;padding:0 0 48px;padding-bottom:calc(48px + env(safe-area-inset-bottom))}
+.blob{position:absolute;pointer-events:none;z-index:0}
+.hero{position:relative;z-index:1;padding:56px 20px 18px}
+.kick{font-size:13px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1.5px}
+h1{font-size:38px;line-height:1.05;margin:8px 0 0;max-width:80%;letter-spacing:-.4px;font-weight:800}
+.lead{font-size:17px;line-height:1.5;margin:14px 0 0;max-width:88%;color:var(--muted)}
+.wrap{position:relative;z-index:1;padding:4px 16px;display:flex;flex-direction:column;gap:14px}
+.card{position:relative;display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:28px;padding:10px 14px 10px 10px;
+  box-shadow:0 10px 30px rgba(31,57,84,.10)}
+.go{flex:1;min-width:0;display:flex;align-items:center;gap:16px;padding:8px 0 8px 10px;text-decoration:none;color:var(--navy);border-radius:22px;transition:transform .2s}
+.go:active{transform:scale(.98)}
+.ic{flex:none;width:60px;height:60px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.c1 .ic{background:#F6D9CB}.c2 .ic{background:#D7E4D6}.c3 .ic{background:#D5DEE8}.c4 .ic{background:#EADCC8}
+.tx{flex:1;min-width:0}
+.tx b{display:block;font-size:19px;line-height:1.2;font-weight:800}
+.tx span{display:block;font-size:14px;color:var(--muted);margin-top:4px}
+.qrb{flex:none;width:46px;height:46px;border-radius:14px;border:0;background:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qrb svg{width:24px;height:24px}
+.btn{display:block;width:100%;text-align:center;border:0;border-radius:20px;padding:17px;font-size:17px;font-weight:800;background:var(--navy);color:var(--cream);text-decoration:none;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--navy);box-shadow:inset 0 0 0 2px var(--sand)}
+.hint{font-size:14px;color:var(--muted);text-align:center;line-height:1.5;margin:4px 8px 0}
+.in{animation:up .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+/* большой QR на экране — показать классу */
+.big{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;z-index:10;background:rgba(31,57,84,.92);display:flex;align-items:center;justify-content:center;padding:20px}
+.big .box{background:var(--paper);border-radius:32px;padding:24px;text-align:center;width:100%;max-width:520px}
+.big img{display:block;width:100%;height:auto;image-rendering:pixelated;border-radius:12px}
+.big b{display:block;font-size:24px;margin:14px 0 4px}
+.big span{font-size:14px;color:var(--muted);word-break:break-all}
+.big button{margin-top:16px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(max-width:380px){h1{font-size:32px}.ic{width:52px;height:52px;font-size:26px}}
+/* печать QR */
+.sheet{display:none}
+@media print{
+  @page{size:A4;margin:10mm}
+  body{background:#fff}#app,.big{display:none!important}
+  .sheet{display:grid;grid-template-columns:1fr 1fr;gap:8mm}
+  .qc{border:1.5mm solid #284F36;border-radius:8mm;padding:6mm;text-align:center;break-inside:avoid;height:88mm;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2mm}
+  .qc img{width:56mm;height:56mm}
+  .qc b{font-size:16pt;color:#1F3954}
+  .qc span{font-size:10pt;color:#284F36;font-weight:800;text-transform:uppercase;letter-spacing:1px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <svg class="blob" aria-hidden="true" viewBox="0 0 200 160" style="right:-40px;top:-30px;width:210px;height:170px"><path d="M40 0h160v150c-30 10-55-10-62-40-8-34-40-30-70-46C40 50 20 20 40 0z" fill="#284F36"/><path d="M110 0h90v40c-25 12-55 0-70-14-8-8-15-16-20-26z" fill="#D85B21"/></svg>
+  <svg class="blob" aria-hidden="true" viewBox="0 0 200 200" style="left:-70px;bottom:-60px;width:200px;height:200px"><path d="M0 30c50-10 95 20 110 70 12 40 40 70 90 100H0z" fill="#1F3954"/></svg>
+  <div class="hero">
+    <div class="kick">Интерактивы</div>
+    <h1>Квизы и узлы</h1>
+    <p class="lead">Выберите занятие. Всё работает прямо в телефоне — регистрироваться не нужно.</p>
+  </div>
+  <div class="wrap">
+    <div class="card c1 in" style="animation-delay:120ms"><a class="go" href="medicina/"><span class="ic">🩺</span><span class="tx"><b>Первая помощь при экстренных ситуациях</b><span>10 вопросов · на время</span></span></a>
+      <button class="qrb" type="button" aria-label="Показать QR-код" data-qr="medicina/" data-t="Первая помощь при экстренных ситуациях"></button></div>
+    <div class="card c2 in" style="animation-delay:190ms"><a class="go" href="travy/"><span class="ic">🌿</span><span class="tx"><b>Травоведение</b><span>5 вопросов</span></span></a>
+      <button class="qrb" type="button" aria-label="Показать QR-код" data-qr="travy/" data-t="Травоведение"></button></div>
+    <div class="card c3 in" style="animation-delay:260ms"><a class="go" href="uzly/"><span class="ic">🪢</span><span class="tx"><b>Узлы</b><span>5 узлов со схемами вязания</span></span></a>
+      <button class="qrb" type="button" aria-label="Показать QR-код" data-qr="uzly/" data-t="Узлы"></button></div>
+    <div class="card c4 in" style="animation-delay:330ms"><a class="go" href="imena/"><span class="ic">🌲</span><span class="tx"><b>Лесные имена</b><span>База имён «Байкальского Скаута»</span></span></a>
+      <button class="qrb" type="button" aria-label="Показать QR-код" data-qr="imena/" data-t="Лесные имена"></button></div>
+    <button class="btn in" style="animation-delay:400ms;margin-top:6px" type="button" onclick="printSheet()">Напечатать QR-коды (A4)</button>
+    <a class="btn ghost in" style="animation-delay:460ms" href="uzly/?print">QR-коды для каждого узла</a>
+    <p class="hint">Значок <b>QR</b> на карточке — большой код на весь экран, чтобы класс отсканировал его с проектора.</p>
+  </div>
+</div>
+<div class="sheet" id="sheet"></div>
+<script>
+/* QR-код без библиотек: байтовый режим, уровень коррекции M, версии 1–6 (до 106 байт).
+   Перенос liga/qr.py на JavaScript. qrSvg(text) → строка <svg>, qrDataUrl(text) → картинка для <img>. */
+var QR = (function () {
+  var BLOCKS = {1: [10, [[1, 16]]], 2: [16, [[1, 28]]], 3: [26, [[1, 44]]], 4: [18, [[2, 32]]], 5: [24, [[2, 43]]], 6: [16, [[4, 27]]]};
+  var ALIGN = {1: [], 2: [6, 18], 3: [6, 22], 4: [6, 26], 5: [6, 30], 6: [6, 34]};
+  var EXP = new Array(512), LOG = new Array(256), x = 1, i;
+  for (i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11D; }
+  for (i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+  function gmul(a, b) { return a === 0 || b === 0 ? 0 : EXP[LOG[a] + LOG[b]]; }
+  function rsGen(n) {
+    var g = [1];
+    for (var i = 0; i < n; i++) {
+      var g2 = new Array(g.length + 1).fill(0);
+      for (var j = 0; j < g.length; j++) { g2[j] ^= g[j]; g2[j + 1] ^= gmul(g[j], EXP[i]); }
+      g = g2;
+    }
+    return g;
+  }
+  function rsRem(data, n) {
+    var gen = rsGen(n), rem = data.concat(new Array(n).fill(0));
+    for (var i = 0; i < data.length; i++) { var c = rem[i]; if (c) for (var j = 1; j < gen.length; j++) rem[i + j] ^= gmul(gen[j], c); }
+    return rem.slice(data.length);
+  }
+  function bin(v, len) { var s = v.toString(2); while (s.length < len) s = '0' + s; return s; }
+  function utf8(text) { var out = [], s = unescape(encodeURIComponent(text)); for (var i = 0; i < s.length; i++) out.push(s.charCodeAt(i)); return out; }
+  function codewords(data, version) {
+    var ecN = BLOCKS[version][0], groups = BLOCKS[version][1], cap = 0, i;
+    groups.forEach(function (g) { cap += g[0] * g[1]; });
+    var bits = '0100' + bin(data.length, 8) + data.map(function (b) { return bin(b, 8); }).join('');
+    bits += '0'.repeat(Math.min(4, cap * 8 - bits.length));
+    bits += '0'.repeat((8 - bits.length % 8) % 8);
+    var cw = [];
+    for (i = 0; i < bits.length; i += 8) cw.push(parseInt(bits.slice(i, i + 8), 2));
+    var pad = [0xEC, 0x11], base = bits.length / 8;
+    while (cw.length < cap) cw.push(pad[(cw.length - base) % 2]);
+    var blocks = [], pos = 0;
+    groups.forEach(function (g) { for (var n = 0; n < g[0]; n++) { blocks.push(cw.slice(pos, pos + g[1])); pos += g[1]; } });
+    var ecc = blocks.map(function (b) { return rsRem(b, ecN); }), out = [], mx = 0;
+    blocks.forEach(function (b) { mx = Math.max(mx, b.length); });
+    for (i = 0; i < mx; i++) blocks.forEach(function (b) { if (i < b.length) out.push(b[i]); });
+    for (i = 0; i < ecN; i++) ecc.forEach(function (e) { out.push(e[i]); });
+    return out;
+  }
+  function formatBits(mask) {
+    var data = mask, rem = data << 10;
+    for (var i = 14; i > 9; i--) if (rem & (1 << i)) rem ^= 0x537 << (i - 10);
+    return ((data << 10) | rem) ^ 0x5412;
+  }
+  function maskFn(mask, r, c) {
+    switch (mask) {
+      case 0: return (r + c) % 2 === 0;
+      case 1: return r % 2 === 0;
+      case 2: return c % 3 === 0;
+      case 3: return (r + c) % 3 === 0;
+      case 4: return (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0;
+      case 5: return (r * c) % 2 + (r * c) % 3 === 0;
+      case 6: return ((r * c) % 2 + (r * c) % 3) % 2 === 0;
+      default: return ((r + c) % 2 + (r * c) % 3) % 2 === 0;
+    }
+  }
+  function build(version, cw, mask) {
+    var size = 17 + 4 * version, m = [], r, c, i;
+    for (r = 0; r < size; r++) m.push(new Array(size).fill(null));
+    function finder(r0, c0) {
+      for (var dr = -1; dr < 8; dr++) for (var dc = -1; dc < 8; dc++) {
+        var rr = r0 + dr, cc = c0 + dc;
+        if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
+          var inside = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6;
+          var ring = inside && (dr === 0 || dr === 6 || dc === 0 || dc === 6);
+          var core = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+          m[rr][cc] = ring || core ? 1 : 0;
+        }
+      }
+    }
+    finder(0, 0); finder(0, size - 7); finder(size - 7, 0);
+    for (i = 8; i < size - 8; i++) m[6][i] = m[i][6] = i % 2 === 0 ? 1 : 0;
+    var pos = ALIGN[version];
+    pos.forEach(function (ar) { pos.forEach(function (ac) {
+      if (m[ar][ac] !== null) return;
+      for (var dr = -2; dr < 3; dr++) for (var dc = -2; dc < 3; dc++) m[ar + dr][ac + dc] = Math.max(Math.abs(dr), Math.abs(dc)) !== 1 ? 1 : 0;
+    }); });
+    m[size - 8][8] = 1;
+    var res = m.map(function (row) { return row.map(function (v) { return v !== null; }); });
+    for (i = 0; i < 9; i++) res[8][i] = res[i][8] = true;
+    for (i = 0; i < 8; i++) res[8][size - 1 - i] = res[size - 1 - i][8] = true;
+    var bits = cw.map(function (b) { return bin(b, 8); }).join(''), k = 0, up = true, col = size - 1;
+    while (col > 0) {
+      if (col === 6) col -= 1;
+      for (var t = 0; t < size; t++) {
+        r = up ? size - 1 - t : t;
+        for (var j = 0; j < 2; j++) {
+          c = col - j;
+          if (res[r][c]) continue;
+          var bit = k < bits.length ? +bits[k] : 0; k++;
+          if (maskFn(mask, r, c)) bit ^= 1;
+          m[r][c] = bit;
+        }
+      }
+      up = !up; col -= 2;
+    }
+    var fb = formatBits(mask), f = [];
+    for (i = 0; i < 15; i++) f.push((fb >> i) & 1);
+    for (i = 0; i < 6; i++) m[i][8] = f[i];
+    m[7][8] = f[6]; m[8][8] = f[7]; m[8][7] = f[8];
+    for (i = 9; i < 15; i++) m[8][14 - i] = f[i];
+    for (i = 0; i < 8; i++) m[8][size - 1 - i] = f[i];
+    for (i = 8; i < 15; i++) m[size - 15 + i][8] = f[i];
+    m[size - 8][8] = 1;
+    return m;
+  }
+  function penalty(m) {
+    var size = m.length, p = 0, lines = m.slice(), r, c;
+    for (c = 0; c < size; c++) lines.push(m.map(function (row) { return row[c]; }));
+    lines.forEach(function (line) {
+      var run = 1;
+      for (var i = 1; i < size; i++) { if (line[i] === line[i - 1]) run++; else { if (run >= 5) p += run - 2; run = 1; } }
+      if (run >= 5) p += run - 2;
+      var s = line.join(''), a = s.split('10111010000').length - 1, b = s.split('00001011101').length - 1;
+      p += 40 * (a + b);
+    });
+    for (r = 0; r < size - 1; r++) for (c = 0; c < size - 1; c++) if (m[r][c] === m[r][c + 1] && m[r][c] === m[r + 1][c] && m[r][c] === m[r + 1][c + 1]) p += 3;
+    var dark = 0; m.forEach(function (row) { row.forEach(function (v) { dark += v; }); });
+    dark = Math.floor(dark * 100 / (size * size));
+    p += Math.floor(Math.abs(dark - 50) / 5) * 10;
+    return p;
+  }
+  function matrix(text) {
+    var data = utf8(text), version = 0;
+    for (var v = 1; v <= 6; v++) { var cap = 0; BLOCKS[v][1].forEach(function (g) { cap += g[0] * g[1]; }); if (data.length <= cap - 2) { version = v; break; } }
+    if (!version) throw new Error('Слишком длинная ссылка для QR');
+    var cw = codewords(data, version), best = null, bestP = Infinity;
+    for (var mk = 0; mk < 8; mk++) { var m = build(version, cw, mk), p = penalty(m); if (p < bestP) { best = m; bestP = p; } }
+    return best;
+  }
+  function svg(text, color) {
+    var m = matrix(text), q = 4, n = m.length + 2 * q, d = '';
+    m.forEach(function (row, r) { row.forEach(function (v, c) { if (v) d += 'M' + (c + q) + ' ' + (r + q) + 'h1v1h-1z'; }); });
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + n + ' ' + n + '" width="' + n * 4 + '" height="' + n * 4 + '" shape-rendering="crispEdges">' +
+      '<rect width="' + n + '" height="' + n + '" fill="#fff"/><path d="' + d + '" fill="' + (color || '#111418') + '"/></svg>';
+  }
+  return {matrix: matrix, svg: svg, dataUrl: function (text) { return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg(text)); }};
+})();
+if (typeof module !== 'undefined') module.exports = QR;
+
+</script>
+<script>
+var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="#1F3954" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>';
+var BASE = location.href.split('#')[0].split('?')[0].replace(/index\.html$/, '');
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]; }); }
+document.querySelectorAll('.qrb').forEach(function (b) {
+  b.innerHTML = ICON;
+  b.addEventListener('click', function () { showBig(b.getAttribute('data-qr'), b.getAttribute('data-t')); });
+});
+function showBig(path, title) {
+  var url = BASE + path, d = document.createElement('div');
+  d.className = 'big';
+  d.innerHTML = '<div class="box"><img src="' + QR.dataUrl(url) + '" alt="QR-код"><b>' + esc(title) + '</b><span>' + esc(url) + '</span>' +
+    '<button class="btn" type="button">Закрыть</button></div>';
+  d.addEventListener('click', function () { d.remove(); });
+  document.body.appendChild(d);
+}
+function printSheet() {
+  var items = [].map.call(document.querySelectorAll('.qrb'), function (b) { return [b.getAttribute('data-qr'), b.getAttribute('data-t')]; });
+  document.getElementById('sheet').innerHTML = items.map(function (x) {
+    return '<div class="qc"><span>Наведи камеру</span><b>' + esc(x[1]) + '</b><img src="' + QR.dataUrl(BASE + x[0]) + '" alt=""></div>';
+  }).join('');
+  setTimeout(function () { window.print(); }, 150);
+}
+</script>
+</body>
+</html>
